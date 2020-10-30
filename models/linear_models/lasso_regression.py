@@ -15,7 +15,7 @@ def run_training(X, fold):
     lasso = linear_model.Lasso()
     lasso.fit(X_train, y_train)
     preds = lasso.predict(X_test)
-    score = metrics.mean_squared_error(y_test, preds)
+    score = metrics.mean_squared_error(y_test, preds) ** 0.5
     print(f'Fold {fold}, RMSE {score}')
 
 

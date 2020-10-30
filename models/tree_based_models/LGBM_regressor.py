@@ -1,15 +1,10 @@
-from catboost import Pool, CatBoostRegressor
+from sklearn import metrics
 import pandas as pd
 import numpy as np
-from sklearn import metrics
+import lightgbm as lgb
 
 
 def run_training(X, fold):
-    cat = []
-    for i in range(115):
-        cat.append(i+1)
-        X[f'{i+1}'] = X[f'{i+1}'].astype("int")
-
     X_train = X[X["kfold"] != fold].reset_index(drop=True)
     y_train = X_train.loss
     X_train = X_train.drop("loss", axis=1)
@@ -17,13 +12,19 @@ def run_training(X, fold):
     y_test = X_test.loss
     X_test = X_test.drop("loss", axis=1)
 
-    train_pool = Pool(X_train, y_train, cat_features=cat)
-    test_pool = Pool(X_test, y_test, cat_features=cat)
+    lgb_train = lgb.Dataset(data=X_train, label=y_train)
+    lgb_valid = lgb.Dataset(
+        data=X_test, label=y_test, reference=lgb_train)
 
-    cat = CatBoostRegressor(loss_function="RMSE")
+    params = {
+        'boosting_type': 'gbdt',
+        'objective': "regression"
+    }
 
-    cat.fit(train_pool)
-    y_pred = cat.predict(test_pool)
+    gbm = lgb.train(params=params, train_set=lgb_train,
+                    valid_sets=[lgb_valid], num_boost_round=1000)
+    y_pred = gbm.predict(
+        X_test)
     rmse = metrics.mean_squared_error(y_test, y_pred) ** 0.5
     print(f'Fold {fold}, RMSE: {rmse}')
 
