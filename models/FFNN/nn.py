@@ -53,17 +53,17 @@ def run_training(X, fold):
     X_test = X_test.drop("loss", axis=1)
 
     nn = Sequential([
-        layers.Dense(128, activation="relu"),
+        layers.Dense(250, activation="relu"),
         layers.Dropout(0.3),
-        layers.Dense(24, activation="relu"),
+        layers.Dense(32, activation="relu"),
         layers.Dropout(0.3),
-        layers.Dense(128, activation="relu"),
+        layers.Dense(250, activation="relu"),
         layers.Dropout(0.5),
         layers.Dense(1, activation=None),
     ])
 
     nn.compile(loss=tf.losses.MeanSquaredError(),
-               optimizer=tf.optimizers.Adam(), )
+               optimizer=tf.optimizers.Adam(learning_rate=0.0001), )
 
     my_callbacks = [
         tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=10),
@@ -72,7 +72,7 @@ def run_training(X, fold):
     nn.fit(
         X_train,
         y_train,
-        batch_size=32,
+        batch_size=250,
         epochs=500,
         # We pass some validation for
         # monitoring validation loss and metrics
@@ -84,7 +84,7 @@ def run_training(X, fold):
     )
     # print(results.history)
 
-    results = nn.evaluate(X_test, y_test, batch_size=32)
+    results = nn.evaluate(X_test, y_test, batch_size=250)
     print(results ** 0.5)
 
     #preds = model.predict(X_test)
